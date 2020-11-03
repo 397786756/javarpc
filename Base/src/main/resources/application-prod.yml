@@ -17,3 +17,4 @@ spring:
         min-idle: 0
     lettuce:
       shutdown-timeout: 0
+

@@ -1,4 +1,4 @@
-package com.zsj.rpcgame.mybatis.hanlder;
+package com.zsj.rpcgame.dao;
 
 import com.alibaba.fastjson.JSONObject;
 import org.apache.ibatis.type.BaseTypeHandler;

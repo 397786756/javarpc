@@ -16,8 +16,6 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>Base</module>
-        <module>Core</module>
-        <module>Common</module>
         <module>GateWay</module>
         <module>GameServer</module>
         <module>CrossServer</module>

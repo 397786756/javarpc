@@ -1,4 +1,4 @@
-package com.zsj.rpcgame.netty;
+package com.zsj.rpcgame.net.netty;
 
 /**
  * @Description: 服务器枚举类
@@ -7,7 +7,7 @@ package com.zsj.rpcgame.netty;
  * @Version: 1.0.0
  * @Time: 2020-11-03 下午 03:03
  * @Project: rpcgame
- * @Package: com.zsj.rpcgame.netty
+ * @Package: com.zsj.rpcgame.net.netty
  * @Software: IntelliJ IDEA
  */
 public enum ServerType {

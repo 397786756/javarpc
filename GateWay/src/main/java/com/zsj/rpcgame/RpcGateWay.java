@@ -11,13 +11,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @date 2020/9/2220:56
  */
 @SpringBootApplication
-public class RpcGameApplication {
+public class RpcGateWay {
     public static void main(String[] args) throws Exception {
-        SpringApplication app = new SpringApplication(RpcGameApplication.class);
+        SpringApplication app = new SpringApplication(RpcGateWay.class);
         // 取消tomcat
         app.setWebApplicationType(WebApplicationType.NONE);
         app.run(args);
         NettyServer nettyServer = new NettyServer();
-        nettyServer.run("1");
+        nettyServer.run(null);
+
     }
 }

@@ -1,7 +1,7 @@
 package com.zsj.rpcgame.entity;
 
 import com.alibaba.fastjson.JSONObject;
-import com.zsj.rpcgame.mybatis.hanlder.MySqlJsonObjectHandler;
+import com.zsj.rpcgame.dao.MySqlJsonObjectHandler;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

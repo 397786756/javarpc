@@ -1,11 +1,9 @@
-package com.zsj.rpcgame.netty;
+package com.zsj.rpcgame.net.netty.client;
 
+import com.zsj.rpcgame.log.Log;
+import com.zsj.rpcgame.net.netty.SimpleNettyHandler;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -17,30 +15,30 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
 @Component("nettyServer")
-public class NettyServer implements CommandLineRunner, DisposableBean {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(NettyServer.class);
+public class NettyServer  {
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private static Channel serverChannel;
 
-    @Override
-    public void run(String... args) throws Exception {
-        bind();
+    public  Channel getServerChannel() {
+        return serverChannel;
     }
 
-    private void bind() throws InterruptedException {
+    public void run(String... args) throws Exception {
+        if (args==null){
+            bind(9527);
+        }else {
+            bind(9528);
+        }
+    }
+
+    private void bind(int port) throws InterruptedException {
         bossGroup = new NioEventLoopGroup();
         workerGroup = new NioEventLoopGroup();
         ServerBootstrap serverBootstrap = new ServerBootstrap();
@@ -53,18 +51,18 @@ public class NettyServer implements CommandLineRunner, DisposableBean {
                 channel.pipeline().addLast("aggregator", new HttpObjectAggregator(65535));
                 channel.pipeline().addLast(new WebSocketFrameAggregator(65535));
                 channel.pipeline().addLast("websocket-rpcgame.gateWay.gameserver", new WebSocketServerProtocolHandler("/ws"));
+                channel.pipeline().addLast("handler", new SimpleNettyHandler());
             }
         });
-        ChannelFuture future = serverBootstrap.bind(9527).sync();
+        ChannelFuture future = serverBootstrap.bind(port).sync();
         future.addListener(fl -> {
             if (fl.isSuccess()) {
                 serverChannel = future.channel();
-                LOGGER.info("Netty server start");
+                Log.info("Netty server start,port:{}", port);
             }
         });
     }
 
-    @Override
     public void destroy() {
         if (serverChannel != null) {
             serverChannel.close();
