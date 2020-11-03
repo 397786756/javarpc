@@ -29,62 +29,51 @@ import java.util.concurrent.TimeUnit;
 @Component("nettyServer")
 public class NettyServer implements CommandLineRunner, DisposableBean {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(NettyServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NettyServer.class);
 
-	@Value("${server.socket-port}")
-	private int socketPort;
-	@Value("${server.socket-uri}")
-	private String socketUri;
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
+    private static Channel serverChannel;
 
-	private EventLoopGroup bossGroup;
-	private EventLoopGroup workerGroup;
-	private static Channel serverChannel;
+    @Override
+    public void run(String... args) throws Exception {
+        bind();
+    }
 
-	@Override
-	public void run(String... args) throws Exception {
-		bind();
-	}
+    private void bind() throws InterruptedException {
+        bossGroup = new NioEventLoopGroup();
+        workerGroup = new NioEventLoopGroup();
+        ServerBootstrap serverBootstrap = new ServerBootstrap();
+        serverBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).option(ChannelOption.SO_BACKLOG, 512).handler(new LoggingHandler(LogLevel.DEBUG)).childHandler(new ChannelInitializer<SocketChannel>() {
+            @Override
+            protected void initChannel(SocketChannel channel) throws Exception {
+                channel.pipeline().addLast("heart-dog", new IdleStateHandler(30, 30, 60, TimeUnit.SECONDS));
+                channel.pipeline().addLast("http-codec", new HttpServerCodec());
+                channel.pipeline().addLast("http-chunked", new ChunkedWriteHandler());
+                channel.pipeline().addLast("aggregator", new HttpObjectAggregator(65535));
+                channel.pipeline().addLast(new WebSocketFrameAggregator(65535));
+                channel.pipeline().addLast("websocket-rpcgame.gateWay.gameserver", new WebSocketServerProtocolHandler("/ws"));
+            }
+        });
+        ChannelFuture future = serverBootstrap.bind(9527).sync();
+        future.addListener(fl -> {
+            if (fl.isSuccess()) {
+                serverChannel = future.channel();
+                LOGGER.info("Netty server start");
+            }
+        });
+    }
 
-	private void bind() throws InterruptedException {
-		bossGroup = new NioEventLoopGroup(8);
-		workerGroup = new NioEventLoopGroup();
-		ServerBootstrap serverBootstrap = new ServerBootstrap();
-		serverBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).option(ChannelOption.SO_BACKLOG, 512).handler(new LoggingHandler(LogLevel.DEBUG)).childHandler(new ChannelInitializer<SocketChannel>() {
-			@Override
-			protected void initChannel(SocketChannel channel) throws Exception {
-				channel.pipeline().addLast("heart-dog", new IdleStateHandler(30, 30, 60, TimeUnit.SECONDS));
-				channel.pipeline().addLast("http-codec", new HttpServerCodec());
-				channel.pipeline().addLast("http-chunked", new ChunkedWriteHandler());
-				channel.pipeline().addLast("aggregator", new HttpObjectAggregator(65535));
-				channel.pipeline().addLast(new WebSocketFrameAggregator(65535));
-				channel.pipeline().addLast("websocket-gameserver", new WebSocketServerProtocolHandler(socketUri));
-			}
-		});
-		ChannelFuture future = serverBootstrap.bind(socketPort).sync();
-		future.addListener(fl -> {
-			if (fl.isSuccess()) {
-				serverChannel = future.channel();
-				LOGGER.info("Netty server start");
-				LOGGER.info("WebSocket port:{}", socketPort);
-			}
-		});
-		future.channel().closeFuture().addListener(fl -> this.close());
-	}
-
-	public void close() {
-		if (serverChannel != null) {
-			serverChannel.close();
-		}
-		if (bossGroup != null) {
-			bossGroup.shutdownGracefully();
-		}
-		if (workerGroup != null) {
-			workerGroup.shutdownGracefully();
-		}
-	}
-
-	@Override
-	public void destroy() {
-		close();
-	}
+    @Override
+    public void destroy() {
+        if (serverChannel != null) {
+            serverChannel.close();
+        }
+        if (bossGroup != null) {
+            bossGroup.shutdownGracefully();
+        }
+        if (workerGroup != null) {
+            workerGroup.shutdownGracefully();
+        }
+    }
 }

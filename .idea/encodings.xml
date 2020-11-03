@@ -3,5 +3,11 @@
   <component name="Encoding" addBOMForNewFiles="with NO BOM">
     <file url="file://$PROJECT_DIR$" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Base" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Common" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Core" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/CrossServer" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/GameServer" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/GateWay" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/LoginServer" charset="UTF-8" />
   </component>
 </project>
